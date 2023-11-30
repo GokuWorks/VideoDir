@@ -39,6 +39,19 @@ int main() {
 				printEntry(entry, topS);
 				break;
 			}
+
+			string midP = topP + "/" + entry;
+			vStr_t bot;
+			getDir(bot, midP);
+
+			for (const auto& entry : bot) {
+				if (entry == "Plex Versions") { continue; }
+
+				if (!entry.contains(topS)) {
+					printEntry(entry, topS);
+					break;
+				}
+			}
 		}
 	}
 
