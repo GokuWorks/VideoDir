@@ -22,12 +22,23 @@ int main() {
 
 	getDir(top, ROOT);
 
-	for (const auto& entry : top) {
+	for (const auto& entry : top) { //Maybe make as function for this. Nested path building may be an issue.
 		string topS(entry.data());
 
-		if ((!entry.contains("(") || !entry.contains(")")) && !entry.contains("#Download")) {
+		if ((!entry.contains("(") || !entry.contains(")")) && !entry.contains("#Download")) {//TODO: better comparisons
 			printEntry(entry, topS);
 			continue;
+		}
+
+		string topP = ROOT + "/" + entry;
+		vStr_t mid;
+		getDir(mid, topP);
+
+		for (const auto& entry : mid) {
+			if (!entry.contains("Season ")) {
+				printEntry(entry, topS);
+				break;
+			}
 		}
 	}
 
