@@ -3,57 +3,56 @@
 
 using std::vector, std::string, std::cout, std::endl;
 
-typedef vector<string> vStr_t;
+typedef std::filesystem::path path_t;
+typedef vector<std::filesystem::path> vPath_t;
 
-static void getDir(vStr_t &v, const string &p) {
+static void getDir(vPath_t &v, const path_t &p) {
 	for (const auto &entry : std::filesystem::directory_iterator(p)) {
 		v.push_back(entry.path().filename().string());
 	}
 }
 
-static void printEntry(const string& s, const string& topS) {
+static void printEntry(const path_t& s, const path_t& topS) {
 	cout << "\033[31m" << s << "\033[33m" << " from: "
 		<< topS << "\033[0m" << endl;
 }
 
 int main() {
-	const string ROOT = "Y:/Media/Anime";
-	vStr_t top;
+    const path_t root = "...";
+    vPath_t top;
 
-	getDir(top, ROOT);
+    getDir(top, root);
 
-	for (const auto& entry : top) { //Maybe make as function for this. Nested path building may be an issue.
-		string topS(entry.data());
+    for (const auto& entry : top) {
+        if ((!entry.string().contains("(") || !entry.string().contains(")")) && !entry.string().contains("#Download")) {
+            printEntry(entry, entry);
+            continue;
+        }
 
-		if ((!entry.contains("(") || !entry.contains(")")) && !entry.contains("#Download")) {//TODO: better comparisons
-			printEntry(entry, topS);
-			continue;
-		}
+        const path_t topPath = root / entry;
+        vPath_t mid;
+        getDir(mid, topPath);
 
-		string topP = ROOT + "/" + entry;
-		vStr_t mid;
-		getDir(mid, topP);
+        for (const auto& midEntry : mid) {
+            if (!midEntry.string().contains("Season ")) {
+                printEntry(midEntry, entry);
+                break;
+            }
 
-		for (const auto& entry : mid) {
-			if (!entry.contains("Season ")) {
-				printEntry(entry, topS);
-				break;
-			}
+            const path_t midPath = topPath / midEntry;
+            vPath_t bot;
+            getDir(bot, midPath);
 
-			string midP = topP + "/" + entry;
-			vStr_t bot;
-			getDir(bot, midP);
+            for (const auto& botEntry : bot) {
+                if (botEntry == "Plex Versions") continue;
 
-			for (const auto& entry : bot) {
-				if (entry == "Plex Versions") { continue; }
+                if (!botEntry.string().starts_with(entry.string())) {
+                    printEntry(botEntry, entry);
+                    break;
+                }
+            }
+        }
+    }
 
-				if (!entry.contains(topS)) {
-					printEntry(entry, topS);
-					break;
-				}
-			}
-		}
-	}
-
-	return 0;
+    return 0;
 }
